@@ -3,7 +3,8 @@
   "config": {
     "abort": {
       "already_configured_account": "帳號已經設定完成",
-      "reauth_successful": "重新認證成功"
+      "reauth_successful": "重新認證成功",
+      "reconfigure_successful": "重新設定成功"
     },
     "error": {
       "cannot_connect": "連線失敗",
@@ -18,6 +19,13 @@
           "password": "密碼"
         }
       },
+      "reconfigure": {
+        "title": "重新設定整合",
+        "description": "請輸入帳號 {username} 的新密碼",
+        "data": {
+          "password": "密碼"
+        }
+      },
       "user": {
         "description": "請輸入 _德業智能 app_ 的登入憑證",
         "data": {
@@ -27,15 +35,53 @@
       }
     }
   },
+  "config_subentries": {
+    "device": {
+      "title": "除濕機",
+      "entry_type": "除濕機",
+      "initiate_flow": {
+        "user": "新增除濕機",
+        "reconfigure": "重新設定除濕機"
+      },
+      "step": {
+        "user": {
+          "title": "新增除濕機",
+          "description": "從德業帳號中選擇尚未新增的除濕機。",
+          "data": {
+            "device_id": "裝置"
+          }
+        },
+        "reconfigure": {
+          "title": "更新除濕機",
+          "description": "從德業帳號重新整理 **{device_name}**（`{device_id}`）。"
+        }
+      },
+      "abort": {
+        "already_configured": "此除濕機已經設定完成",
+        "no_devices": "此帳號上沒有尚未新增的除濕機",
+        "device_not_found": "此除濕機已不在德業帳號中",
+        "cannot_connect": "連線失敗",
+        "invalid_auth": "身份驗證無效",
+        "unknown": "未預期錯誤",
+        "reconfigure_successful": "重新設定成功"
+      }
+    }
+  },
   "entity": {
     "humidifier": {
       "dehumidifier": {
         "state_attributes": {
           "mode": {
             "state": {
-              "manual": "手動",
+              "normal": "正常",
+              "auto": "自動",
+              "sleep": "睡眠",
               "air_purifier": "淨化",
-              "clothes_dryer": "乾衣"
+              "clothes_dryer": "乾衣",
+              "turbo": "急速",
+              "manual_purifier": "手動淨化",
+              "sleep_purifier": "睡眠淨化",
+              "auto_purifier": "自動淨化"
             }
           }
         }
@@ -43,10 +89,10 @@
     },
     "sensor": {
       "temperature": {
-        "name": "環境溫度"
+        "name": "室內溫度"
       },
       "humidity": {
-        "name": "環境濕度"
+        "name": "室內濕度"
       }
     },
     "switch": {
@@ -60,7 +106,16 @@
         "name": "負離子"
       },
       "water_pump": {
-        "name": "水泵"
+        "name": "水泵排水"
+      },
+      "uv": {
+        "name": "UV 燈"
+      },
+      "prompt_sound": {
+        "name": "提示音"
+      },
+      "screen_display": {
+        "name": "螢幕顯示"
       }
     },
     "binary_sensor": {
@@ -72,13 +127,45 @@
         }
       },
       "defrosting": {
-        "name": "除霜"
+        "name": "化霜指示"
       }
     },
     "fan": {
       "fan": {
-        "name": "風扇"
+        "name": "風速",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "low": "低速",
+              "medium": "中速",
+              "high": "高速",
+              "full": "全速",
+              "auto": "自動"
+            }
+          }
+        }
       }
+    }
+  },
+  "exceptions": {
+    "command_cannot_connect": {
+      "message": "向裝置傳送指令時無法連線德業雲"
+    },
+    "command_invalid_auth": {
+      "message": "向裝置傳送指令時身份驗證失敗"
+    },
+    "command_failed": {
+      "message": "向裝置傳送指令失敗：{error}"
+    }
+  },
+  "issues": {
+    "unknown_product": {
+      "title": "未知的德業除濕機型號",
+      "description": "裝置 **{name}**（{product_name}，產品 ID `{product_id}`）不在已知產品清單中，因此本整合正在使用通用預設功能設定。部分控制項可能缺失或多餘。\n\n請在 GitHub 提交 issue 並附上該產品 ID，以便新增針對該型號的支援。"
+    },
+    "mqtt_disconnected": {
+      "title": "德業 MQTT 連線已中斷",
+      "description": "本整合與德業 MQTT 服務的連線已中斷超過 {minutes} 分鐘。在連線恢復之前，裝置狀態不會更新。\n\n請檢查網路連線和德業雲端服務狀態；如果未能自動恢復，請重新載入此整合。"
     }
   }
 }

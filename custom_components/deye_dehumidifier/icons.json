@@ -5,9 +5,15 @@
         "state_attributes": {
           "mode": {
             "state": {
-              "manual": "mdi:cursor-pointer",
+              "normal": "mdi:cursor-pointer",
+              "auto": "mdi:refresh-auto",
+              "sleep": "mdi:power-sleep",
               "air_purifier": "mdi:air-purifier",
-              "clothes_dryer": "mdi:hanger"
+              "clothes_dryer": "mdi:hanger",
+              "turbo": "mdi:fan-plus",
+              "manual_purifier": "mdi:air-filter",
+              "sleep_purifier": "mdi:power-sleep",
+              "auto_purifier": "mdi:air-purifier"
             }
           }
         }
@@ -36,6 +42,39 @@
         "default": "mdi:water-pump",
         "state": {
           "off": "mdi:water-pump-off"
+        }
+      },
+      "uv": {
+        "default": "mdi:sun-wireless",
+        "state": {
+          "off": "mdi:sun-wireless-outline"
+        }
+      },
+      "prompt_sound": {
+        "default": "mdi:volume-high",
+        "state": {
+          "off": "mdi:volume-off"
+        }
+      },
+      "screen_display": {
+        "default": "mdi:monitor",
+        "state": {
+          "off": "mdi:monitor-off"
+        }
+      }
+    },
+    "fan": {
+      "fan": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "low": "mdi:fan-speed-1",
+              "medium": "mdi:fan-speed-2",
+              "high": "mdi:fan-speed-3",
+              "full": "mdi:fan",
+              "auto": "mdi:fan-auto"
+            }
+          }
         }
       }
     },

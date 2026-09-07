@@ -3,7 +3,8 @@
   "config": {
     "abort": {
       "already_configured_account": "Tài khoản đã được cấu hình",
-      "reauth_successful": "Xác thực lại thành công"
+      "reauth_successful": "Xác thực lại thành công",
+      "reconfigure_successful": "Cấu hình lại thành công"
     },
     "error": {
       "cannot_connect": "Không thể kết nối",
@@ -18,6 +19,13 @@
           "password": "Mật khẩu"
         }
       },
+      "reconfigure": {
+        "title": "Cấu hình lại tích hợp",
+        "description": "Vui lòng nhập mật khẩu mới cho tài khoản {username}",
+        "data": {
+          "password": "Mật khẩu"
+        }
+      },
       "user": {
         "description": "Vui lòng nhập thông tin đăng nhập cho ứng dụng _Deye Smart (德业智能)_",
         "data": {
@@ -27,15 +35,53 @@
       }
     }
   },
+  "config_subentries": {
+    "device": {
+      "title": "Máy hút ẩm",
+      "entry_type": "Máy hút ẩm",
+      "initiate_flow": {
+        "user": "Thêm máy hút ẩm",
+        "reconfigure": "Cấu hình lại máy hút ẩm"
+      },
+      "step": {
+        "user": {
+          "title": "Thêm máy hút ẩm",
+          "description": "Chọn một máy hút ẩm từ tài khoản Deye chưa được thêm.",
+          "data": {
+            "device_id": "Thiết bị"
+          }
+        },
+        "reconfigure": {
+          "title": "Cập nhật máy hút ẩm",
+          "description": "Làm mới **{device_name}** (`{device_id}`) từ tài khoản Deye."
+        }
+      },
+      "abort": {
+        "already_configured": "Máy hút ẩm này đã được cấu hình",
+        "no_devices": "Không tìm thấy máy hút ẩm bổ sung trên tài khoản này",
+        "device_not_found": "Máy hút ẩm này không còn trên tài khoản Deye",
+        "cannot_connect": "Không thể kết nối",
+        "invalid_auth": "Xác thực không hợp lệ",
+        "unknown": "Lỗi không xác định",
+        "reconfigure_successful": "Cấu hình lại thành công"
+      }
+    }
+  },
   "entity": {
     "humidifier": {
       "dehumidifier": {
         "state_attributes": {
           "mode": {
             "state": {
-              "manual": "Thủ công",
-              "air_purifier": "Làm sạch không khí",
-              "clothes_dryer": "Sấy quần áo"
+              "normal": "Bình thường",
+              "auto": "Tự động",
+              "sleep": "Ngủ",
+              "air_purifier": "Làm sạch",
+              "clothes_dryer": "Sấy",
+              "turbo": "Mạnh",
+              "manual_purifier": "Lọc thủ công",
+              "sleep_purifier": "Lọc khi ngủ",
+              "auto_purifier": "Lọc tự động"
             }
           }
         }
@@ -43,10 +89,10 @@
     },
     "sensor": {
       "temperature": {
-        "name": "Nhiệt độ môi trường"
+        "name": "Nhiệt độ trong nhà"
       },
       "humidity": {
-        "name": "Độ ẩm môi trường"
+        "name": "Độ ẩm trong nhà"
       }
     },
     "switch": {
@@ -60,7 +106,16 @@
         "name": "Ion âm"
       },
       "water_pump": {
-        "name": "Bơm nước"
+        "name": "Bơm thoát nước"
+      },
+      "uv": {
+        "name": "Đèn UV"
+      },
+      "prompt_sound": {
+        "name": "Âm báo"
+      },
+      "screen_display": {
+        "name": "Màn hình"
       }
     },
     "binary_sensor": {
@@ -72,13 +127,45 @@
         }
       },
       "defrosting": {
-        "name": "Rã đông"
+        "name": "Chỉ báo rã đông"
       }
     },
     "fan": {
       "fan": {
-        "name": "Quạt"
+        "name": "Tốc độ gió",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "low": "Thấp",
+              "medium": "Trung bình",
+              "high": "Cao",
+              "full": "Tối đa",
+              "auto": "Tự động"
+            }
+          }
+        }
       }
+    }
+  },
+  "exceptions": {
+    "command_cannot_connect": {
+      "message": "Không thể kết nối tới đám mây Deye khi gửi lệnh"
+    },
+    "command_invalid_auth": {
+      "message": "Xác thực thất bại khi gửi lệnh tới thiết bị"
+    },
+    "command_failed": {
+      "message": "Không gửi được lệnh tới thiết bị: {error}"
+    }
+  },
+  "issues": {
+    "unknown_product": {
+      "title": "Mẫu máy hút ẩm Deye chưa được hỗ trợ",
+      "description": "Thiết bị **{name}** ({product_name}, product ID `{product_id}`) không có trong danh sách sản phẩm đã biết, nên tích hợp đang dùng cấu hình tính năng mặc định. Một số điều khiển có thể thiếu hoặc thừa.\n\nVui lòng mở issue trên GitHub kèm product ID này để bổ sung hỗ trợ cho mẫu máy."
+    },
+    "mqtt_disconnected": {
+      "title": "Mất kết nối MQTT Deye",
+      "description": "Tích hợp đã mất kết nối với dịch vụ MQTT của Deye hơn {minutes} phút. Trạng thái thiết bị sẽ không cập nhật cho đến khi kết nối được khôi phục.\n\nHãy kiểm tra kết nối Internet và trạng thái Deye cloud, rồi tải lại tích hợp nếu không tự phục hồi."
     }
   }
 }

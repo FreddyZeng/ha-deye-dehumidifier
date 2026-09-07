@@ -3,7 +3,8 @@
   "config": {
     "abort": {
       "already_configured_account": "Conta já configurada",
-      "reauth_successful": "A reautenticação bem efetuada"
+      "reauth_successful": "A reautenticação bem efetuada",
+      "reconfigure_successful": "A reconfiguração foi efetuada com sucesso"
     },
     "error": {
       "cannot_connect": "Falha na ligação",
@@ -18,6 +19,13 @@
           "password": "Senha"
         }
       },
+      "reconfigure": {
+        "title": "Reconfigurar integração",
+        "description": "Inserir a nova senha para o utilizador: {username}",
+        "data": {
+          "password": "Senha"
+        }
+      },
       "user": {
         "description": "Por favor, insira suas credenciais de login do aplicativo _Deye Smart_",
         "data": {
@@ -27,15 +35,53 @@
       }
     }
   },
+  "config_subentries": {
+    "device": {
+      "title": "Desumidificador",
+      "entry_type": "Desumidificador",
+      "initiate_flow": {
+        "user": "Adicionar desumidificador",
+        "reconfigure": "Reconfigurar desumidificador"
+      },
+      "step": {
+        "user": {
+          "title": "Adicionar desumidificador",
+          "description": "Selecione um desumidificador da sua conta Deye que ainda não tenha sido adicionado.",
+          "data": {
+            "device_id": "Dispositivo"
+          }
+        },
+        "reconfigure": {
+          "title": "Atualizar desumidificador",
+          "description": "Atualizar **{device_name}** (`{device_id}`) a partir da sua conta Deye."
+        }
+      },
+      "abort": {
+        "already_configured": "Este desumidificador já está configurado",
+        "no_devices": "Não foram encontrados desumidificadores adicionais nesta conta",
+        "device_not_found": "Este desumidificador já não está na conta Deye",
+        "cannot_connect": "Falha na ligação",
+        "invalid_auth": "Falha na autenticação",
+        "unknown": "Erro desconhecido",
+        "reconfigure_successful": "A reconfiguração foi bem-sucedida"
+      }
+    }
+  },
   "entity": {
     "humidifier": {
       "dehumidifier": {
         "state_attributes": {
           "mode": {
             "state": {
-              "manual": "Manual",
-              "air_purifier": "Purificador de ar",
-              "clothes_dryer": "Secador de roupas"
+              "normal": "Normal",
+              "auto": "Automático",
+              "sleep": "Sono",
+              "air_purifier": "Purificar",
+              "clothes_dryer": "Secagem",
+              "turbo": "Forte",
+              "manual_purifier": "Purificação manual",
+              "sleep_purifier": "Purificação noturna",
+              "auto_purifier": "Purificação automática"
             }
           }
         }
@@ -43,10 +89,10 @@
     },
     "sensor": {
       "temperature": {
-        "name": "Temperatura"
+        "name": "Temperatura interior"
       },
       "humidity": {
-        "name": "Humidade"
+        "name": "Humidade interior"
       }
     },
     "switch": {
@@ -60,7 +106,16 @@
         "name": "Anion"
       },
       "water_pump": {
-        "name": "Bomba de água"
+        "name": "Drenagem da bomba de água"
+      },
+      "uv": {
+        "name": "Luz UV"
+      },
+      "prompt_sound": {
+        "name": "Som de aviso"
+      },
+      "screen_display": {
+        "name": "Ecrã"
       }
     },
     "binary_sensor": {
@@ -72,13 +127,45 @@
         }
       },
       "defrosting": {
-        "name": "Descongelação"
+        "name": "Indicação de descongelação"
       }
     },
     "fan": {
       "fan": {
-        "name": "Ventoinha"
+        "name": "Velocidade do vento",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "low": "Baixa",
+              "medium": "Média",
+              "high": "Alta",
+              "full": "Máxima",
+              "auto": "Automático"
+            }
+          }
+        }
       }
+    }
+  },
+  "exceptions": {
+    "command_cannot_connect": {
+      "message": "Falha na ligação à nuvem Deye ao enviar um comando"
+    },
+    "command_invalid_auth": {
+      "message": "Falha na autenticação ao enviar um comando para o dispositivo"
+    },
+    "command_failed": {
+      "message": "Falha ao enviar comando para o dispositivo: {error}"
+    }
+  },
+  "issues": {
+    "unknown_product": {
+      "title": "Modelo de desumidificador Deye desconhecido",
+      "description": "O dispositivo **{name}** ({product_name}, ID de produto `{product_id}`) não está na lista de produtos conhecidos, por isso esta integração está a usar um conjunto de funcionalidades predefinido. Alguns controlos podem faltar ou ser extra.\n\nAbra um issue no GitHub com este ID de produto para que o suporte específico do modelo possa ser adicionado."
+    },
+    "mqtt_disconnected": {
+      "title": "Ligação MQTT Deye perdida",
+      "description": "Esta integração está desligada do serviço MQTT da Deye há mais de {minutes} minutos. O estado do dispositivo não será atualizado até a ligação ser restabelecida.\n\nVerifique a ligação à Internet e o estado da nuvem Deye e, se não recuperar automaticamente, recarregue a integração."
     }
   }
 }

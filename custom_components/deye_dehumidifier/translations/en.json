@@ -3,7 +3,8 @@
   "config": {
     "abort": {
       "already_configured_account": "Account is already configured",
-      "reauth_successful": "Re-authentication was successful"
+      "reauth_successful": "Re-authentication was successful",
+      "reconfigure_successful": "Re-configuration was successful"
     },
     "error": {
       "cannot_connect": "Failed to connect",
@@ -18,6 +19,13 @@
           "password": "Password"
         }
       },
+      "reconfigure": {
+        "title": "Reconfigure Integration",
+        "description": "Please enter the new password for: {username}",
+        "data": {
+          "password": "Password"
+        }
+      },
       "user": {
         "description": "Please enter your login credentials of the _Deye Smart_ app",
         "data": {
@@ -27,15 +35,53 @@
       }
     }
   },
+  "config_subentries": {
+    "device": {
+      "title": "Dehumidifier",
+      "entry_type": "Dehumidifier",
+      "initiate_flow": {
+        "user": "Add dehumidifier",
+        "reconfigure": "Reconfigure dehumidifier"
+      },
+      "step": {
+        "user": {
+          "title": "Add dehumidifier",
+          "description": "Select a dehumidifier from your Deye account that is not already added.",
+          "data": {
+            "device_id": "Device"
+          }
+        },
+        "reconfigure": {
+          "title": "Update dehumidifier",
+          "description": "Refresh **{device_name}** (`{device_id}`) from your Deye account."
+        }
+      },
+      "abort": {
+        "already_configured": "This dehumidifier is already configured",
+        "no_devices": "No additional dehumidifiers were found on this account",
+        "device_not_found": "This dehumidifier is no longer on the Deye account",
+        "cannot_connect": "Failed to connect",
+        "invalid_auth": "Invalid authentication",
+        "unknown": "Unexpected error",
+        "reconfigure_successful": "Reconfiguration was successful"
+      }
+    }
+  },
   "entity": {
     "humidifier": {
       "dehumidifier": {
         "state_attributes": {
           "mode": {
             "state": {
-              "manual": "Manual",
-              "air_purifier": "Air Purifier",
-              "clothes_dryer": "Clothes Dryer"
+              "normal": "Normal",
+              "auto": "Automatic",
+              "sleep": "Sleep",
+              "air_purifier": "Purify",
+              "clothes_dryer": "Drying",
+              "turbo": "Strong",
+              "manual_purifier": "Manual Purification",
+              "sleep_purifier": "Sleep Purification",
+              "auto_purifier": "Auto Purification"
             }
           }
         }
@@ -43,15 +89,15 @@
     },
     "sensor": {
       "temperature": {
-        "name": "Temperature"
+        "name": "Indoor Temperature"
       },
       "humidity": {
-        "name": "Humidity"
+        "name": "Indoor Humidity"
       }
     },
     "switch": {
       "continuous": {
-        "name": "Continuous Dehumidify"
+        "name": "Continuous Dehumidification"
       },
       "child_lock": {
         "name": "Child Lock"
@@ -60,7 +106,16 @@
         "name": "Anion"
       },
       "water_pump": {
-        "name": "Water Pump"
+        "name": "Water Pump Drain"
+      },
+      "uv": {
+        "name": "UV Light"
+      },
+      "prompt_sound": {
+        "name": "Prompt Sound"
+      },
+      "screen_display": {
+        "name": "Screen Display"
       }
     },
     "binary_sensor": {
@@ -72,13 +127,45 @@
         }
       },
       "defrosting": {
-        "name": "Defrosting"
+        "name": "Defrost Indication"
       }
     },
     "fan": {
       "fan": {
-        "name": "Fan"
+        "name": "Wind Speed",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "low": "Low",
+              "medium": "Medium",
+              "high": "High",
+              "full": "Full",
+              "auto": "Auto"
+            }
+          }
+        }
       }
+    }
+  },
+  "exceptions": {
+    "command_cannot_connect": {
+      "message": "Failed to connect to the Deye cloud while sending a command"
+    },
+    "command_invalid_auth": {
+      "message": "Authentication failed while sending a command to the device"
+    },
+    "command_failed": {
+      "message": "Failed to send command to the device: {error}"
+    }
+  },
+  "issues": {
+    "unknown_product": {
+      "title": "Unknown Deye dehumidifier model",
+      "description": "The device **{name}** ({product_name}, product ID `{product_id}`) is not in the known product list, so this integration is using a generic default feature set. Some controls may be missing or extra.\n\nPlease open a GitHub issue with this product ID so model-specific support can be added."
+    },
+    "mqtt_disconnected": {
+      "title": "Deye MQTT connection lost",
+      "description": "This integration has been disconnected from Deye's MQTT service for more than {minutes} minutes. Device state will not update until the connection is restored.\n\nCheck your internet connection and Deye cloud status, then reload the integration if it does not recover on its own."
     }
   }
 }

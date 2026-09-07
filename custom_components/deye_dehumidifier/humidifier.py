@@ -1,45 +1,48 @@
-"""Platform for humidifier integration."""
+"""Platform for dehumidifier humidifier entities."""
 
-from __future__ import annotations
+from typing import Any, override
 
-from typing import Any
-
-from homeassistant.components.humidifier import HumidifierDeviceClass, HumidifierEntity
-from homeassistant.components.humidifier.const import (
-    MODE_AUTO,
-    MODE_SLEEP,
-    HumidifierAction,
-    HumidifierEntityFeature,
-)
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from libdeye.cloud_api import DeyeApiResponseDeviceInfo
 from libdeye.const import DeyeDeviceMode, get_product_feature_config
-from libdeye.device_state import DeyeDeviceState
 
-from . import DATA_KEY, DeyeEntity
+from homeassistant.components.humidifier import (
+    MODE_AUTO,
+    MODE_NORMAL,
+    MODE_SLEEP,
+    HumidifierAction,
+    HumidifierDeviceClass,
+    HumidifierEntity,
+    HumidifierEntityFeature,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from . import DeyeConfigEntry, DeyeEntity, async_setup_dynamic_entities
 from .data_coordinator import DeyeDataUpdateCoordinator
 
-MODE_MANUAL = "manual"
 MODE_AIR_PURIFIER = "air_purifier"
 MODE_CLOTHES_DRYER = "clothes_dryer"
+MODE_TURBO = "turbo"
+MODE_MANUAL_PURIFIER = "manual_purifier"
+MODE_SLEEP_PURIFIER = "sleep_purifier"
+MODE_AUTO_PURIFIER = "auto_purifier"
+
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: DeyeConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Add dehumidifiers for passed config_entry in HA."""
-    data = hass.data[DATA_KEY][config_entry.entry_id]
-
-    for device in data.device_list:
-        deye_dehumidifier = DeyeDehumidifier(
-            data.coordinator_map[device["device_id"]],
-            device,
-        )
-        async_add_entities([deye_dehumidifier])
+    """Add dehumidifiers for this config entry."""
+    async_setup_dynamic_entities(
+        hass,
+        entry,
+        async_add_entities,
+        lambda coordinator, device: [DeyeDehumidifier(coordinator, device)],
+    )
 
 
 class DeyeDehumidifier(DeyeEntity, HumidifierEntity):
@@ -58,7 +61,6 @@ class DeyeDehumidifier(DeyeEntity, HumidifierEntity):
         super().__init__(coordinator, device)
         assert self._attr_unique_id is not None
         self._attr_unique_id += "-dehumidifier"
-        self.entity_id = f"humidifier.{self.entity_id_base}_dehumidifier"
         feature_config = get_product_feature_config(device["product_id"])
         if len(feature_config["mode"]) > 0:
             self._attr_supported_features = HumidifierEntityFeature.MODES
@@ -67,56 +69,63 @@ class DeyeDehumidifier(DeyeEntity, HumidifierEntity):
         )
         self._attr_min_humidity = feature_config["min_target_humidity"]
         self._attr_max_humidity = feature_config["max_target_humidity"]
+        # Deye UIs and official apps step target humidity in 5% increments.
+        self._attr_target_humidity_step = 5.0
         self._attr_entity_picture = device["picture_v3"] or device["product_icon"]
 
     @property
-    def get_device_state(self) -> DeyeDeviceState:
-        return self.coordinator.data.state
-
-    @property
+    @override
     def target_humidity(self) -> int:
         """Return the humidity we try to reach."""
         return self.coordinator.data.state.target_humidity
 
     @property
+    @override
     def current_humidity(self) -> int:
         """Return the current humidity."""
         return self.coordinator.data.state.environment_humidity
 
     @property
+    @override
     def is_on(self) -> bool:
         """Return True if device is on."""
-        return self.coordinator.data.state.power_switch
+        return bool(self.coordinator.data.state.power_switch)
 
     @property
+    @override
     def mode(self) -> str:
         """Return the working mode."""
         return deye_mode_to_hass_mode(self.coordinator.data.state.mode)
 
     @property
+    @override
     def action(self) -> HumidifierAction:
+        """Return the current humidifier action."""
         if not self.coordinator.data.state.power_switch:
             return HumidifierAction.OFF
-        elif self.coordinator.data.state.fan_running:
+        if self.coordinator.data.state.fan_running:
             return HumidifierAction.DRYING
-        else:
-            return HumidifierAction.IDLE
+        return HumidifierAction.IDLE
 
+    @override
     async def async_set_mode(self, mode: str) -> None:
         """Set new working mode."""
         self.coordinator.data.state.mode = hass_mode_to_deye_mode(mode)
         await self.publish_command_from_current_state()
 
+    @override
     async def async_set_humidity(self, humidity: int) -> None:
         """Set new target humidity."""
         self.coordinator.data.state.target_humidity = humidity
         await self.publish_command_from_current_state()
 
+    @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the device on."""
         self.coordinator.data.state.power_switch = True
         await self.publish_command_from_current_state()
 
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
         self.coordinator.data.state.power_switch = False
@@ -133,7 +142,15 @@ def deye_mode_to_hass_mode(mode: DeyeDeviceMode) -> str:
         return MODE_AUTO
     if mode == DeyeDeviceMode.SLEEP_MODE:
         return MODE_SLEEP
-    return MODE_MANUAL
+    if mode == DeyeDeviceMode.TURBO_MODE:
+        return MODE_TURBO
+    if mode == DeyeDeviceMode.MANUAL_PURIFIER_MODE:
+        return MODE_MANUAL_PURIFIER
+    if mode == DeyeDeviceMode.SLEEP_PURIFIER_MODE:
+        return MODE_SLEEP_PURIFIER
+    if mode == DeyeDeviceMode.AUTO_PURIFIER_MODE:
+        return MODE_AUTO_PURIFIER
+    return MODE_NORMAL
 
 
 def hass_mode_to_deye_mode(mode: str) -> DeyeDeviceMode:
@@ -146,4 +163,12 @@ def hass_mode_to_deye_mode(mode: str) -> DeyeDeviceMode:
         return DeyeDeviceMode.AUTO_MODE
     if mode == MODE_SLEEP:
         return DeyeDeviceMode.SLEEP_MODE
+    if mode == MODE_TURBO:
+        return DeyeDeviceMode.TURBO_MODE
+    if mode == MODE_MANUAL_PURIFIER:
+        return DeyeDeviceMode.MANUAL_PURIFIER_MODE
+    if mode == MODE_SLEEP_PURIFIER:
+        return DeyeDeviceMode.SLEEP_PURIFIER_MODE
+    if mode == MODE_AUTO_PURIFIER:
+        return DeyeDeviceMode.AUTO_PURIFIER_MODE
     return DeyeDeviceMode.MANUAL_MODE

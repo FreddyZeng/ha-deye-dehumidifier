@@ -1,43 +1,40 @@
-"""Platform for humidifier integration."""
+"""Platform for humidity and temperature sensors."""
 
-from __future__ import annotations
+from typing import override
+
+from libdeye.cloud_api import DeyeApiResponseDeviceInfo
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, UnitOfTemperature
+from homeassistant.const import UnitOfRatio, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from libdeye.cloud_api import DeyeApiResponseDeviceInfo
 
-from . import DATA_KEY, DeyeEntity
+from . import DeyeConfigEntry, DeyeEntity, async_setup_dynamic_entities
 from .data_coordinator import DeyeDataUpdateCoordinator
+
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: DeyeConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Add sensors for passed config_entry in HA."""
-    data = hass.data[DATA_KEY][config_entry.entry_id]
-
-    for device in data.device_list:
-        async_add_entities(
-            [
-                DeyeHumiditySensor(
-                    data.coordinator_map[device["device_id"]],
-                    device,
-                ),
-                DeyeTemperatureSensor(
-                    data.coordinator_map[device["device_id"]],
-                    device,
-                ),
-            ]
-        )
+    """Add sensors for this config entry."""
+    async_setup_dynamic_entities(
+        hass,
+        entry,
+        async_add_entities,
+        lambda coordinator, device: [
+            DeyeHumiditySensor(coordinator, device),
+            DeyeTemperatureSensor(coordinator, device),
+        ],
+    )
 
 
 class DeyeHumiditySensor(DeyeEntity, SensorEntity):
@@ -46,7 +43,7 @@ class DeyeHumiditySensor(DeyeEntity, SensorEntity):
     _attr_translation_key = "humidity"
     _attr_device_class = SensorDeviceClass.HUMIDITY
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_native_unit_of_measurement = UnitOfRatio.PERCENTAGE
 
     def __init__(
         self,
@@ -57,9 +54,9 @@ class DeyeHumiditySensor(DeyeEntity, SensorEntity):
         super().__init__(coordinator, device)
         assert self._attr_unique_id is not None
         self._attr_unique_id += "-humidity"
-        self.entity_id = f"sensor.{self.entity_id_base}_humidity"
 
     @property
+    @override
     def native_value(self) -> int:
         """Return current environment humidity."""
         return self.coordinator.data.state.environment_humidity
@@ -82,9 +79,9 @@ class DeyeTemperatureSensor(DeyeEntity, SensorEntity):
         super().__init__(coordinator, device)
         assert self._attr_unique_id is not None
         self._attr_unique_id += "-temperature"
-        self.entity_id = f"sensor.{self.entity_id_base}_temperature"
 
     @property
+    @override
     def native_value(self) -> int:
         """Return current environment temperature."""
         return self.coordinator.data.state.environment_temperature
